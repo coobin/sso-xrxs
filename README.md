@@ -8,12 +8,6 @@
 - 反向代理可以把认证后的用户身份通过 HTTP Header 转发给后端
 - 希望用户访问一个内部入口域名后，自动跳转并登录薪人薪事
 
-仓库地址：
-
-```text
-git@github.com:coobin/sso-xrxs.git
-```
-
 ## 功能特性
 
 - 支持 `Authelia + Nginx` 或 `Authelia + Nginx Proxy Manager`
