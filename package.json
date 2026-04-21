@@ -1,0 +1,10 @@
+{
+  "name": "sso-xrxs",
+  "version": "1.0.0",
+  "description": "A small SSO bridge that connects Authelia or custom auth to Xinrenxinshi free-login.",
+  "type": "commonjs",
+  "scripts": {
+    "start": "node server.js",
+    "check": "node --check server.js"
+  }
+}
