@@ -279,14 +279,30 @@ function getSingleHeader(req, headerName) {
   return String(value || "").trim();
 }
 
+function decodePossiblyMojibakeHeader(value) {
+  if (!value) return "";
+
+  // Node exposes header values as latin1 strings; when upstream sends UTF-8 bytes
+  // directly in headers, Chinese text can appear as mojibake (e.g. "å¼ ä¸‰").
+  const recovered = Buffer.from(value, "latin1").toString("utf8");
+  if (recovered.includes("\uFFFD")) return value;
+
+  const looksLikeMojibake = /[ÃÂÅÆÐÑØÞà-ÿ]/.test(value);
+  return looksLikeMojibake ? recovered : value;
+}
+
 function getTrustedHeaderUser(req) {
   const user = {
-    userId: getSingleHeader(req, REMOTE_USER_HEADER),
-    email: getSingleHeader(req, REMOTE_EMAIL_HEADER),
-    name: getSingleHeader(req, REMOTE_NAME_HEADER),
-    employeeId: getSingleHeader(req, REMOTE_EMPLOYEE_ID_HEADER),
-    mobile: getSingleHeader(req, REMOTE_MOBILE_HEADER),
-    jobNumber: getSingleHeader(req, REMOTE_JOB_NUMBER_HEADER),
+    userId: decodePossiblyMojibakeHeader(getSingleHeader(req, REMOTE_USER_HEADER)),
+    email: decodePossiblyMojibakeHeader(getSingleHeader(req, REMOTE_EMAIL_HEADER)),
+    name: decodePossiblyMojibakeHeader(getSingleHeader(req, REMOTE_NAME_HEADER)),
+    employeeId: decodePossiblyMojibakeHeader(
+      getSingleHeader(req, REMOTE_EMPLOYEE_ID_HEADER),
+    ),
+    mobile: decodePossiblyMojibakeHeader(getSingleHeader(req, REMOTE_MOBILE_HEADER)),
+    jobNumber: decodePossiblyMojibakeHeader(
+      getSingleHeader(req, REMOTE_JOB_NUMBER_HEADER),
+    ),
   };
 
   if (
