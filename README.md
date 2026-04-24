@@ -98,6 +98,8 @@ ports:
   服务对外访问地址，例如 `https://xrxs.example.com`
 - `SESSION_SECRET`
   本地会话 Cookie 签名密钥，请使用随机长字符串
+- `LOG_TIME_OFFSET_MINUTES`
+  日志时区偏移分钟数，默认 `480`（即 `+08:00`）
 - `COOKIE_SECURE`
   是否给 Cookie 加 `Secure` 标记，HTTPS 场景建议为 `true`
 - `COOKIE_DOMAIN`

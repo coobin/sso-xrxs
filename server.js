@@ -30,6 +30,9 @@ const XRXS_FREE_LOGIN_URL =
   process.env.XRXS_FREE_LOGIN_URL ||
   "https://api.xinrenxinshi.com/v5/login/geturl";
 const XRXS_API_TIMEOUT_MS = Number(process.env.XRXS_API_TIMEOUT_MS || 8000);
+const LOG_TIME_OFFSET_MINUTES = readLogTimeOffsetMinutes(
+  process.env.LOG_TIME_OFFSET_MINUTES,
+);
 
 const XRXS_EMPLOYEE_LOOKUP_TYPE =
   process.env.XRXS_EMPLOYEE_LOOKUP_TYPE || "auto";
@@ -97,6 +100,37 @@ function readOptionalInt(value) {
     throw new Error(`Expected integer value, got: ${value}`);
   }
   return parsed;
+}
+
+function readLogTimeOffsetMinutes(value) {
+  if (value == null || value === "") return 8 * 60;
+  const parsed = Number(value);
+  if (!Number.isInteger(parsed) || parsed < -12 * 60 || parsed > 14 * 60) {
+    throw new Error(`Invalid LOG_TIME_OFFSET_MINUTES: ${value}`);
+  }
+  return parsed;
+}
+
+function formatTimestampWithOffset(date, offsetMinutes) {
+  const shiftedTime = date.getTime() + offsetMinutes * 60 * 1000;
+  const shifted = new Date(shiftedTime);
+  const sign = offsetMinutes >= 0 ? "+" : "-";
+  const absoluteMinutes = Math.abs(offsetMinutes);
+  const offsetHoursPart = String(Math.floor(absoluteMinutes / 60)).padStart(2, "0");
+  const offsetMinutesPart = String(absoluteMinutes % 60).padStart(2, "0");
+
+  const year = shifted.getUTCFullYear();
+  const month = String(shifted.getUTCMonth() + 1).padStart(2, "0");
+  const day = String(shifted.getUTCDate()).padStart(2, "0");
+  const hour = String(shifted.getUTCHours()).padStart(2, "0");
+  const minute = String(shifted.getUTCMinutes()).padStart(2, "0");
+  const second = String(shifted.getUTCSeconds()).padStart(2, "0");
+  const millisecond = String(shifted.getUTCMilliseconds()).padStart(3, "0");
+
+  return (
+    `${year}-${month}-${day}T${hour}:${minute}:${second}.${millisecond}` +
+    `${sign}${offsetHoursPart}:${offsetMinutesPart}`
+  );
 }
 
 function validateConfig() {
@@ -359,7 +393,7 @@ function getLogUser(user) {
 
 function logEvent(event, req, url, fields = {}) {
   const entry = {
-    time: new Date().toISOString(),
+    time: formatTimestampWithOffset(new Date(), LOG_TIME_OFFSET_MINUTES),
     event,
     ...getRequestContext(req, url),
     ...fields,
